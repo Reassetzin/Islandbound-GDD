@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Islandbound — Dev Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e0e0d;
+  --bg2: #141413;
+  --bg3: #1a1a18;
+  --surface: #141413;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #edecea;
+  --text2: #8a8880;
+  --text3: #555450;
+  --green: #3dba74;
+  --green-bg: rgba(61,186,116,0.1);
+  --green-border: rgba(61,186,116,0.25);
+  --amber: #d4900a;
+  --amber-bg: rgba(212,144,10,0.1);
+  --amber-border: rgba(212,144,10,0.25);
+  --blue: #5b9cf6;
+  --blue-bg: rgba(91,156,246,0.1);
+  --blue-border: rgba(91,156,246,0.25);
+  --red: #e06060;
+  --red-bg: rgba(224,96,96,0.1);
+  --red-border: rgba(224,96,96,0.25);
+  --purple: #a78bfa;
+  --purple-bg: rgba(167,139,250,0.1);
+  --purple-border: rgba(167,139,250,0.25);
+  --gray-bg: rgba(255,255,255,0.04);
+  --gray-border: rgba(255,255,255,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Top nav ── */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 52px;
+}
+
+.topnav-brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.topnav-brand span {
+  font-weight: 300;
+  color: var(--text3);
+  font-size: 13px;
+}
+
+.topnav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topnav-link {
+  font-size: 13px;
+  color: var(--text2);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: all 0.1s;
+}
+
+.topnav-link:hover { color: var(--text); background: var(--bg3); }
+.topnav-link.active { color: var(--text); background: var(--bg3); font-weight: 500; }
+
+/* ── Page wrapper ── */
+.page { max-width: 1000px; margin: 0 auto; padding: 40px 32px 80px; }
+
+/* ── Page header ── */
+.page-header {
+  margin-bottom: 36px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.page-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -1px;
+  margin-bottom: 24px;
+}
+
+/* ── Progress bar ── */
+.progress-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.progress-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+
+.progress-bar {
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 99px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 14px;
+}
+
+.pb-done { background: var(--green); }
+.pb-ip { background: var(--blue); }
+.pb-un { background: var(--amber); }
+.pb-bl { background: var(--bg3); border: 1px solid var(--border); }
+
+.progress-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.pl-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot.done { background: var(--green); }
+.dot.ip { background: var(--blue); }
+.dot.un { background: var(--amber); }
+.dot.bl { background: var(--text3); }
+.dot.bk { background: var(--red); }
+
+.pl-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ── Filter bar ── */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.filter-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-right: 4px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.filter-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.fbtn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.fbtn:hover { border-color: var(--border2); color: var(--text); }
+.fbtn.active { color: var(--text); border-color: var(--border2); background: var(--bg3); font-weight: 500; }
+.fbtn.role-builder.active { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.fbtn.role-scripter.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.fbtn.role-modeler.active { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+
+/* ── Area sections ── */
+.area-section {
+  margin-bottom: 40px;
+}
+
+.area-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.area-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.1px;
+}
+
+.area-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── Task board ── */
+.task-board {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.task-board-head {
+  display: grid;
+  grid-template-columns: 1fr 120px 110px 90px;
+  padding: 8px 16px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+.task-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 110px 90px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 0.1s;
+  cursor: default;
+}
+
+.task-row:last-child { border-bottom: none; }
+.task-row:hover { background: rgba(255,255,255,0.02); }
+.task-row.hidden { display: none; }
+
+.task-name {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.task-note {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 300;
+}
+
+.task-row.pri-high .task-name::before {
+  content: '↑ ';
+  color: var(--red);
+  font-weight: 600;
+}
+
+.task-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.badge.done { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge.in-progress { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge.up-next { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge.backlog { background: var(--gray-bg); color: var(--text2); border: 1px solid var(--gray-border); }
+.badge.blocked { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge.tbd { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+
+.role-badge {
+  display: inline-flex;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: var(--bg3);
+}
+
+.role-badge.builder { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.role-badge.scripter { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.role-badge.modeler { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+.role-badge.all { background: var(--gray-bg); color: var(--text2); border-color: var(--gray-border); }
+
+/* ── Empty state ── */
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+  display: none;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width: 640px) {
+  .page { padding: 24px 16px 60px; }
+  .topnav { padding: 0 16px; }
+  .task-board-head { grid-template-columns: 1fr 80px 90px; }
+  .task-row { grid-template-columns: 1fr 80px 90px; }
+  .task-row > *:nth-child(4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="topnav-brand" href="index.html">Islandbound <span>/ Dev Tracker</span></a>
+  <div class="topnav-links">
+    <a class="topnav-link" href="index.html">GDD</a>
+    <a class="topnav-link active" href="tracker.html">Tracker</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-kicker">islandbound · roblox · early development</div>
+    <div class="page-title">Dev tracker</div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-label">Overall progress</div>
+      <div class="progress-bar">
+        <div class="pb-done" style="width:14%"></div>
+        <div class="pb-ip" style="width:8%"></div>
+        <div class="pb-un" style="width:18%"></div>
+        <div class="pb-bl" style="width:60%"></div>
+      </div>
+      <div class="progress-legend">
+        <div class="pl-item"><div class="dot done"></div>Done <span class="pl-num">7</span></div>
+        <div class="pl-item"><div class="dot ip"></div>In progress <span class="pl-num">4</span></div>
+        <div class="pl-item"><div class="dot un"></div>Up next <span class="pl-num">9</span></div>
+        <div class="pl-item"><div class="dot bl"></div>Backlog <span class="pl-num">30</span></div>
+        <div class="pl-item"><div class="dot bk"></div>Blocked <span class="pl-num">0</span></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <span class="filter-label">Role</span>
+      <div class="filter-group">
+        <button class="fbtn active" data-role="all" onclick="filterRole(this)">All</button>
+        <button class="fbtn role-builder" data-role="builder" onclick="filterRole(this)">Builder</button>
+        <button class="fbtn role-scripter" data-role="scripter" onclick="filterRole(this)">Scripter</button>
+        <button class="fbtn role-modeler" data-role="modeler" onclick="filterRole(this)">Modeler</button>
+      </div>
+      <div class="filter-divider"></div>
+      <span class="filter-label">Status</span>
+      <div class="filter-group">
+        <button class="fbtn active" data-status="all" onclick="filterStatus(this)">All</button>
+        <button class="fbtn" data-status="done" onclick="filterStatus(this)">Done</button>
+        <button class="fbtn" data-status="in-progress" onclick="filterStatus(this)">In progress</button>
+        <button class="fbtn" data-status="up-next" onclick="filterStatus(this)">Up next</button>
+        <button class="fbtn" data-status="backlog" onclick="filterStatus(this)">Backlog</button>
+        <button class="fbtn" data-status="tbd" onclick="filterStatus(this)">TBD</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CORE SYSTEMS ── -->
+  <div class="area-section" data-area="core">
+    <div class="area-header">
+      <div class="area-title">Core systems</div>
+      <div class="area-count" id="count-core"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div>Priority</div></div>
+
+      <div class="task-row pri-high" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">Island edge auto-deposit logic</div><div class="task-note">Trigger deposit when player walks near edge</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row pri-high" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">Block unlock system</div><div class="task-note">New block rises when deposit cost is met</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row pri-high" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">Tutorial UI system</div><div class="task-note">Arrow prompts, step-by-step onboarding flow</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="up-next">
+        <div><div class="task-name">Tutorial island block layout</div><div class="task-note">Single block with one tree — starting spawn</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge in-progress">Medium</span></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">Backpack system</div><div class="task-note">Personal carry capacity, client-sided, upgradeable</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge in-progress">Medium</span></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">XP &amp; level system</div><div class="task-note">Award XP for all actions, level up logic</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge in-progress">Medium</span></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="up-next">
+        <div><div class="task-name">Quest system framework</div><div class="task-note">Quest tracking, objectives, reward distribution</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge in-progress">Medium</span></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Rank system + title display</div><div class="task-note">Drifter → Settler → Builder → Explorer → Voyager</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="all" data-status="tbd">
+        <div><div class="task-name">Level unlock rewards design</div><div class="task-note">Decide what each level threshold unlocks</div></div>
+        <div class="task-roles"><span class="role-badge all">All</span></div>
+        <div><span class="badge tbd">TBD</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Complete HUD / UI</div><div class="task-note">Backpack, XP bar, currency display, quest tracker</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── RESOURCES & BUILDINGS ── -->
+  <div class="area-section" data-area="resources">
+    <div class="area-header">
+      <div class="area-title">Resources &amp; buildings</div>
+      <div class="area-count" id="count-resources"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div>Priority</div></div>
+
+      <div class="task-row" data-roles="builder" data-status="done">
+        <div><div class="task-name">Tree resource node</div><div class="task-note">Choppable tree, drops wood</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="done">
+        <div><div class="task-name">Stone resource node</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="done">
+        <div><div class="task-name">Coal resource node</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="in-progress">
+        <div><div class="task-name">Sawmill building</div><div class="task-note">Wood input → planks output, proximity collection</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="in-progress">
+        <div><div class="task-name">Furnace building</div><div class="task-note">Ore + coal input → metal bars output</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="up-next">
+        <div><div class="task-name">Storage building</div><div class="task-note">Personal item storage between sessions</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Farm plot + hoe tool</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Kitchen building + cooking system</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter modeler" data-status="backlog">
+        <div><div class="task-name">Blacksmith building + tool upgrade system</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Fishing rod + fishing system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Equipment station + tool equip system</div><div class="task-note">Players equip tools here, no mid-field swapping</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── TOOLS ── -->
+  <div class="area-section" data-area="tools">
+    <div class="area-header">
+      <div class="area-title">Tools</div>
+      <div class="area-count" id="count-tools"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="scripter" data-status="done">
+        <div><div class="task-name">Axe tool (basic)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="done">
+        <div><div class="task-name">Pickaxe tool (basic)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="in-progress">
+        <div><div class="task-name">Basic tool models (axe, pickaxe)</div><div class="task-note">Starting tools for all players</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked">High</span></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Tool upgrade tiers (stone → iron → gold → rare)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">Weapon models (sword tiers)</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Hoe + fishing rod tools (script)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── COMBAT ── -->
+  <div class="area-section" data-area="combat">
+    <div class="area-header">
+      <div class="area-title">Combat</div>
+      <div class="area-count" id="count-combat"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="modeler" data-status="up-next">
+        <div><div class="task-name">Skeleton 3D model</div><div class="task-note">First mob — style to be aligned with builder</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="all" data-status="tbd">
+        <div><div class="task-name">Mob HP &amp; damage values</div><div class="task-note">Skeleton stats to be decided</div></div>
+        <div class="task-roles"><span class="role-badge all">All</span></div>
+        <div><span class="badge tbd">TBD</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Skeleton AI + combat script</div><div class="task-note">Patrol, aggro, melee attack, drop bones / souls / XP</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Player HP bar + armor system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Additional mob types (cave, jungle, ice, fire)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Dungeon boss encounters</div><div class="task-note">One boss per floor, drops rare blueprints + shards</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── TRAVEL & LOCATIONS ── -->
+  <div class="area-section" data-area="travel">
+    <div class="area-header">
+      <div class="area-title">Travel &amp; locations</div>
+      <div class="area-count" id="count-travel"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Mineshaft building + teleport script</div><div class="task-note">Enter mineshaft → teleport to underground map</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="backlog">
+        <div><div class="task-name">Underground mine map</div><div class="task-note">Pre-built, non-expandable — gold ore + skeletons</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Dock building + island travel system</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Portal building + dungeon entrance</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="backlog">
+        <div><div class="task-name">Jungle Island map</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="backlog">
+        <div><div class="task-name">Ice Island map</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder" data-status="backlog">
+        <div><div class="task-name">Volcano Island map</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Dungeon floors 1–5</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── ECONOMY ── -->
+  <div class="area-section" data-area="economy">
+    <div class="area-header">
+      <div class="area-title">Economy &amp; social</div>
+      <div class="area-count" id="count-economy"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Coin currency system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Shard currency system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Merchant NPC + rotating inventory</div><div class="task-note">Visits twice daily at randomized times</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="builder scripter" data-status="backlog">
+        <div><div class="task-name">Trading post + player-to-player trade</div></div>
+        <div class="task-roles"><span class="role-badge builder">Builder</span><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter modeler" data-status="backlog">
+        <div><div class="task-name">Pet system + passive bonuses</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Promo code system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Seasonal event framework</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── MONETIZATION ── -->
+  <div class="area-section" data-area="monetization">
+    <div class="area-header">
+      <div class="area-title">Monetization</div>
+      <div class="area-count" id="count-monetization"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Game pass system</div><div class="task-note">XP boost, production boost, large backpack</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Season pass / battle pass system</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="scripter" data-status="backlog">
+        <div><div class="task-name">Robux shop (cosmetics, pets, outfits)</div></div>
+        <div class="task-roles"><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+  <!-- ── ART & MODELS ── -->
+  <div class="area-section" data-area="art">
+    <div class="area-header">
+      <div class="area-title">Art &amp; models</div>
+      <div class="area-count" id="count-art"></div>
+    </div>
+    <div class="task-board">
+      <div class="task-board-head"><div>Task</div><div>Role</div><div>Status</div><div></div></div>
+
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">Farm plot, kitchen, blacksmith models</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">Dock, portal, mineshaft entrance models</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">All mob models (cave, jungle, ice, fire)</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">Pet models</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="task-row" data-roles="modeler" data-status="backlog">
+        <div><div class="task-name">Character outfit cosmetics</div></div>
+        <div class="task-roles"><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div></div>
+      </div>
+      <div class="empty-state">No tasks match this filter.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let activeRole = 'all';
+let activeStatus = 'all';
+
+function filterRole(btn) {
+  document.querySelectorAll('[data-role]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeRole = btn.dataset.role;
+  applyFilters();
+}
+
+function filterStatus(btn) {
+  document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeStatus = btn.dataset.status;
+  applyFilters();
+}
+
+function applyFilters() {
+  document.querySelectorAll('.task-row').forEach(row => {
+    const roles = row.dataset.roles || '';
+    const status = row.dataset.status || '';
+    const roleMatch = activeRole === 'all' || roles.includes(activeRole);
+    const statusMatch = activeStatus === 'all' || status === activeStatus;
+    row.classList.toggle('hidden', !(roleMatch && statusMatch));
+  });
+
+  document.querySelectorAll('.area-section').forEach(section => {
+    const rows = section.querySelectorAll('.task-row');
+    const visible = [...rows].filter(r => !r.classList.contains('hidden'));
+    const empty = section.querySelector('.empty-state');
+    if (empty) empty.style.display = visible.length === 0 ? 'block' : 'none';
+    const countEl = section.querySelector('[id^="count-"]');
+    if (countEl) countEl.textContent = visible.length + ' task' + (visible.length !== 1 ? 's' : '');
+  });
+}
+
+// Init counts
+applyFilters();
+</script>
+</body>
+</html>
