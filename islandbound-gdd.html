@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Islandbound — GDD & Dev Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e0e0d;
+  --bg2: #141413;
+  --bg3: #1a1a18;
+  --surface: #141413;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #edecea;
+  --text2: #8a8880;
+  --text3: #555450;
+  --accent: #edecea;
+  --green: #3dba74;
+  --green-bg: rgba(61,186,116,0.1);
+  --green-border: rgba(61,186,116,0.25);
+  --amber: #d4900a;
+  --amber-bg: rgba(212,144,10,0.1);
+  --amber-border: rgba(212,144,10,0.25);
+  --blue: #5b9cf6;
+  --blue-bg: rgba(91,156,246,0.1);
+  --blue-border: rgba(91,156,246,0.25);
+  --red: #e06060;
+  --red-bg: rgba(224,96,96,0.1);
+  --red-border: rgba(224,96,96,0.25);
+  --gray-bg: rgba(255,255,255,0.04);
+  --gray-border: rgba(255,255,255,0.1);
+  --purple: #a78bfa;
+  --purple-bg: rgba(167,139,250,0.1);
+  --purple-border: rgba(167,139,250,0.25);
+  --done: var(--green);
+  --done-bg: var(--green-bg);
+  --inprogress: var(--blue);
+  --inprogress-bg: var(--blue-bg);
+  --upnext: var(--amber);
+  --upnext-bg: var(--amber-bg);
+  --backlog: var(--text2);
+  --backlog-bg: var(--gray-bg);
+  --blocked: var(--red);
+  --blocked-bg: var(--red-bg);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  padding: 24px 20px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+}
+
+.brand-sub {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+}
+
+.brand-version {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--bg2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.nav { padding: 12px 0; flex: 1; }
+
+.nav-group-label {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 10px 20px 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 20px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.1s;
+}
+
+.nav-item:hover { color: var(--text); background: var(--bg); }
+.nav-item.active { color: var(--text); border-left-color: var(--text); background: var(--bg2); font-weight: 500; }
+
+.nav-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  min-width: 16px;
+}
+
+.nav-item.active .nav-num { color: var(--text2); }
+
+.sidebar-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.done { background: var(--green); }
+.dot.inprogress { background: var(--blue); }
+.dot.upnext { background: var(--amber); }
+.dot.backlog { background: var(--text3); }
+.dot.blocked { background: var(--red); }
+
+/* ── Main ── */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  max-width: 860px;
+  padding: 0 52px 80px;
+}
+
+/* ── Hero ── */
+.hero {
+  padding: 56px 0 44px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 56px;
+}
+
+.hero-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -1.5px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.hero-tagline {
+  font-size: 15px;
+  color: var(--text2);
+  font-weight: 300;
+  margin-bottom: 28px;
+}
+
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.chip {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: var(--surface);
+  font-weight: 400;
+}
+
+.chip.dark { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  max-width: 520px;
+}
+
+.stat {
+  padding: 14px 16px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.stat:last-child { border-right: none; }
+
+.stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ── Progress bar ── */
+.progress-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  margin-bottom: 56px;
+}
+
+.progress-title {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+
+.progress-bar-wrap {
+  height: 6px;
+  background: var(--bg2);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  display: flex;
+}
+
+.pb-done { background: var(--green); }
+.pb-inprogress { background: var(--blue); }
+.pb-upnext { background: var(--amber); }
+.pb-backlog { background: var(--bg3); }
+
+.progress-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.pl-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.pl-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ── Sections ── */
+.section {
+  margin-bottom: 64px;
+  scroll-margin-top: 28px;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  min-width: 24px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.4px;
+}
+
+/* ── Sub ── */
+.sub { margin-bottom: 32px; }
+
+.sub-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 12px;
+}
+
+/* ── Task board ── */
+.task-board {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.task-board-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 80px;
+  gap: 0;
+  padding: 8px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+.task-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 80px;
+  gap: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  transition: background 0.1s;
+}
+
+.task-row:last-child { border-bottom: none; }
+.task-row:hover { background: var(--bg); }
+
+.task-name {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.task-note {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+.task-row.priority-high .task-name::before {
+  content: '↑';
+  color: var(--red);
+  font-weight: 600;
+  margin-right: 5px;
+  font-size: 12px;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.02em;
+}
+
+.badge.done { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge.in-progress { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge.up-next { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge.backlog { background: var(--gray-bg); color: var(--text2); border: 1px solid var(--gray-border); }
+.badge.blocked { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge.tbd { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  background: var(--surface);
+}
+
+.role-badge.builder { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.role-badge.scripter { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.role-badge.modeler { background: var(--purple-bg); color: var(--purple); border-color: var(--purple-border); }
+.role-badge.all { background: var(--gray-bg); color: var(--text2); border-color: var(--gray-border); }
+
+/* ── Tables ── */
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+th {
+  background: var(--bg2);
+  padding: 8px 14px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  font-weight: 400;
+}
+
+td {
+  padding: 9px 14px;
+  color: var(--text2);
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+  font-weight: 300;
+}
+
+tr:first-child td { border-top: none; }
+tr:hover td { background: var(--bg); }
+td strong { color: var(--text); font-weight: 500; }
+
+/* ── Cards ── */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.card-body {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* ── Callouts ── */
+.callout {
+  border-left: 2px solid var(--border2);
+  background: var(--surface);
+  border-radius: 0 4px 4px 0;
+  padding: 11px 14px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.callout.green { border-left-color: var(--green); background: var(--green-bg); color: var(--green); }
+.callout.amber { border-left-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+.callout.blue { border-left-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+.callout.red { border-left-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+/* ── Loop ── */
+.loop { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.loop-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  color: var(--text2);
+  font-weight: 300;
+}
+
+.loop-arrow { color: var(--text3); font-size: 14px; }
+
+/* ── Pills ── */
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+
+.pill {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  font-weight: 300;
+}
+
+.pill.green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.pill.blue { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+.pill.amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-border); }
+.pill.coral { background: rgba(240,133,90,0.1); color: #f0855a; border-color: rgba(240,133,90,0.25); }
+.pill.teal { background: rgba(61,186,116,0.1); color: #5ecba1; border-color: rgba(94,203,161,0.25); }
+.pill.pink { background: rgba(240,112,160,0.1); color: #f070a0; border-color: rgba(240,112,160,0.25); }
+
+/* ── Tier grid ── */
+.tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 10px; margin-bottom: 14px; }
+
+.tier {
+  border-radius: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.tier-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.tier.t1 .tier-label { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tier.t2 .tier-label { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.tier.t3 .tier-label { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+.tier.t4 .tier-label { background: rgba(240,133,90,0.1); color: #f0855a; border: 1px solid rgba(240,133,90,0.25); }
+
+.tier-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.tier-range {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+.tier-list {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+/* ── Map zones ── */
+.map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+
+.map-block {
+  border-radius: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.map-zone-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  margin-bottom: 5px;
+}
+
+.map-block-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.map-block-body { font-size: 12px; color: var(--text2); line-height: 1.6; font-weight: 300; }
+
+.map-block.z1 { border-top: 2px solid var(--green); }
+.map-block.z2 { border-top: 2px solid var(--blue); }
+.map-block.z3 { border-top: 2px solid var(--amber); }
+.map-block.z4 { border-top: 2px solid #f0855a; }
+
+/* ── Two col ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+
+/* ── Divider ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 56px 0; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; padding: 0 20px 60px; }
+  .hero-title { font-size: 28px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .task-board-header, .task-row { grid-template-columns: 1fr 90px 80px; }
+  .task-row > *:nth-child(4) { display: none; }
+  .mobile-toggle {
+    display: flex;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 7px 12px;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 12px;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+}
+@media (min-width: 769px) { .mobile-toggle { display: none; } }
+</style>
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰ Menu</button>
+
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-title">Islandbound</div>
+    <div class="brand-sub">GDD &amp; Dev Tracker</div>
+    <div class="brand-version">v1.1 — Early Development</div>
+  </div>
+  <div class="nav">
+    <div class="nav-group-label">Overview</div>
+    <a class="nav-item active" href="#overview" onclick="setActive(this)"><span class="nav-num">01</span>Game overview</a>
+    <a class="nav-item" href="#tracker" onclick="setActive(this)"><span class="nav-num">—</span>Dev tracker</a>
+
+    <div class="nav-group-label">Design</div>
+    <a class="nav-item" href="#loop" onclick="setActive(this)"><span class="nav-num">02</span>Core loop</a>
+    <a class="nav-item" href="#ftue" onclick="setActive(this)"><span class="nav-num">03</span>First-time experience</a>
+    <a class="nav-item" href="#resources" onclick="setActive(this)"><span class="nav-num">04</span>Resources &amp; crafting</a>
+    <a class="nav-item" href="#progression" onclick="setActive(this)"><span class="nav-num">05</span>Progression</a>
+    <a class="nav-item" href="#world" onclick="setActive(this)"><span class="nav-num">06</span>World &amp; map</a>
+    <a class="nav-item" href="#travel" onclick="setActive(this)"><span class="nav-num">07</span>Travel &amp; locations</a>
+    <a class="nav-item" href="#combat" onclick="setActive(this)"><span class="nav-num">08</span>Combat</a>
+    <a class="nav-item" href="#social" onclick="setActive(this)"><span class="nav-num">09</span>Social &amp; economy</a>
+    <a class="nav-item" href="#monetization" onclick="setActive(this)"><span class="nav-num">10</span>Monetization</a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="nav-group-label" style="padding:0 0 8px;">Legend</div>
+    <div class="legend-row"><div class="dot done"></div>Done</div>
+    <div class="legend-row"><div class="dot inprogress"></div>In progress</div>
+    <div class="legend-row"><div class="dot upnext"></div>Up next</div>
+    <div class="legend-row"><div class="dot backlog"></div>Backlog</div>
+    <div class="legend-row"><div class="dot blocked"></div>Blocked</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-kicker">game design document · v1.1 · roblox</div>
+  <div class="hero-title">Islandbound</div>
+  <div class="hero-tagline">Harvest. Build. Expand. Explore.</div>
+  <div class="hero-chips">
+    <span class="chip dark">Crafting</span>
+    <span class="chip dark">Exploration</span>
+    <span class="chip">Shared world</span>
+    <span class="chip">Melee combat</span>
+    <span class="chip">Client-sided inventory</span>
+    <span class="chip">Roblox</span>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-label">Platform</div><div class="stat-value">Roblox</div></div>
+    <div class="stat"><div class="stat-label">Genre</div><div class="stat-value">Crafting / RPG</div></div>
+    <div class="stat"><div class="stat-label">World</div><div class="stat-value">Shared server</div></div>
+    <div class="stat"><div class="stat-label">Status</div><div class="stat-value">Early dev</div></div>
+  </div>
+</div>
+
+<!-- 01 OVERVIEW -->
+<section class="section" id="overview">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-title">Game overview</span>
+  </div>
+
+  <div class="sub">
+    <div class="sub-title">Concept</div>
+    <div class="prose">Islandbound is a shared-world crafting and exploration game on Roblox. Players start on a single block with nothing but a tree and basic tools. By harvesting resources, processing them through buildings, and depositing them at the island edge, they physically expand the island block by block — unlocking new resources, buildings, and eventually new locations to explore.</div>
+    <div class="prose">Inspired by Dreamdale's island-building loop, built for Roblox's multiplayer audience. All players share the same map and see each other, but progression, inventory, and resources are fully client-sided.</div>
+  </div>
+
+  <div class="sub">
+    <div class="sub-title">Design pillars</div>
+    <div class="cards">
+      <div class="card"><div class="card-title">Harvest &amp; craft</div><div class="card-body">No crafting menus. Feed resources into physical buildings, collect from the output side.</div></div>
+      <div class="card"><div class="card-title">Expand &amp; explore</div><div class="card-body">Deposit resources at the island edge to grow your map. Progress toward new biomes and dungeons.</div></div>
+      <div class="card"><div class="card-title">Level &amp; unlock</div><div class="card-body">Every action earns XP. Leveling grants tools, ranks, and perks. Map expansion is driven by deposits, not levels.</div></div>
+      <div class="card"><div class="card-title">Shared world</div><div class="card-body">All players coexist on the same map. No private islands. No shared storage — fully client-sided.</div></div>
+    </div>
+  </div>
+
+  <div class="sub">
+    <div class="sub-title">Team</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Role</th><th>Responsibilities</th><th>Tag</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Builder (you)</strong></td><td>Island blocks, buildings, terrain, UI design</td><td><span class="role-badge builder">Builder</span></td></tr>
+          <tr><td><strong>3D Modeler (GF)</strong></td><td>Characters, mobs, tools, building models, props</td><td><span class="role-badge modeler">Modeler</span></td></tr>
+          <tr><td><strong>Scripter</strong></td><td>All game logic — harvesting, crafting, expansion, combat, UI, economy</td><td><span class="role-badge scripter">Scripter</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="sub">
+    <div class="sub-title">Differentiators vs Dreamdale</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Feature</th><th>Dreamdale</th><th>Islandbound</th></tr></thead>
+        <tbody>
+          <tr><td>World type</td><td>Solo private island</td><td>Shared server world</td></tr>
+          <tr><td>Crafting</td><td>Menu-based</td><td>Physical building interaction</td></tr>
+          <tr><td>Map expansion</td><td>Spend coins / level up</td><td>Deposit resources at island edge</td></tr>
+          <tr><td>Platform</td><td>Mobile only</td><td>Roblox — PC, mobile, console</td></tr>
+          <tr><td>Monetization</td><td>Heavy ads + IAP</td><td>Cosmetics &amp; QoL only, no ads</td></tr>
+          <tr><td>Combat</td><td>Auto-shoot dungeon</td><td>Melee in traveled locations only</td></tr>
+          <tr><td>Inventory</td><td>Backpack + worker NPCs</td><td>Personal backpack, client-sided</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- DEV TRACKER -->
+<section class="section" id="tracker">
+  <div class="section-header">
+    <span class="section-num">—</span>
+    <span class="section-title">Dev tracker</span>
+  </div>
+
+  <div class="progress-summary">
+    <div class="progress-title">Overall progress</div>
+    <div class="progress-bar-wrap" id="progress-bar">
+      <div class="pb-done" style="width:14%"></div>
+      <div class="pb-inprogress" style="width:8%"></div>
+      <div class="pb-upnext" style="width:18%"></div>
+      <div class="pb-backlog" style="width:60%"></div>
+    </div>
+    <div class="progress-legend">
+      <div class="pl-item"><div class="dot done"></div>Done <span class="pl-count" id="count-done">7</span></div>
+      <div class="pl-item"><div class="dot inprogress"></div>In progress <span class="pl-count" id="count-ip">4</span></div>
+      <div class="pl-item"><div class="dot upnext"></div>Up next <span class="pl-count" id="count-un">9</span></div>
+      <div class="pl-item"><div class="dot backlog"></div>Backlog <span class="pl-count" id="count-bl">30</span></div>
+      <div class="pl-item"><div class="dot blocked"></div>Blocked <span class="pl-count" id="count-bk">0</span></div>
+    </div>
+  </div>
+
+  <!-- Up Next -->
+  <div class="sub">
+    <div class="sub-title">↑ Up next — priority tasks</div>
+    <div class="task-board">
+      <div class="task-board-header">
+        <div>Task</div>
+        <div>Role</div>
+        <div>Status</div>
+        <div>Priority</div>
+      </div>
+      <div class="task-row priority-high">
+        <div><div class="task-name">Island edge auto-deposit logic</div><div class="task-note">Trigger resource deposit when player walks near edge</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row priority-high">
+        <div><div class="task-name">Block unlock system</div><div class="task-note">New block rises from water when deposit cost met</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row priority-high">
+        <div><div class="task-name">Tutorial UI system</div><div class="task-note">Arrow prompts, step-by-step onboarding flow</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Tutorial island block layout</div><div class="task-note">Single block with one tree — starting spawn point</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Backpack system</div><div class="task-note">Personal carry capacity, client-sided, upgradeable</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">XP &amp; level system</div><div class="task-note">Award XP for all actions, level up logic</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Quest system framework</div><div class="task-note">Quest tracking, objectives, rewards</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Skeleton 3D model</div><div class="task-note">First mob — style TBD with builder</div></div>
+        <div><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Storage building</div><div class="task-note">Personal item storage between sessions</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge up-next">Up next</span></div>
+        <div><span class="badge tbd">Medium</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- In Progress -->
+  <div class="sub">
+    <div class="sub-title">⟳ In progress</div>
+    <div class="task-board">
+      <div class="task-board-header">
+        <div>Task</div>
+        <div>Role</div>
+        <div>Status</div>
+        <div>Priority</div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Starting island blocks</div><div class="task-note">First wood/stone/coal blocks with terrain</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Sawmill building</div><div class="task-note">Wood input → planks output, proximity collection</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Furnace building</div><div class="task-note">Ore + coal input → metal bars output</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Basic tool models (axe, pickaxe)</div><div class="task-note">Starting tools for all players</div></div>
+        <div><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge in-progress">In progress</span></div>
+        <div><span class="badge blocked" style="background:var(--red-bg);color:var(--red)">High</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done -->
+  <div class="sub">
+    <div class="sub-title">✓ Done</div>
+    <div class="task-board">
+      <div class="task-board-header">
+        <div>Task</div>
+        <div>Role</div>
+        <div>Status</div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Tree resource node</div><div class="task-note">Choppable tree, drops wood</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Stone resource node</div><div class="task-note">Mineable stone, drops stone</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Coal resource node</div><div class="task-note">Mineable coal deposit</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Axe tool (basic)</div><div class="task-note">Harvesting tool for wood nodes</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Pickaxe tool (basic)</div><div class="task-note">Harvesting tool for stone and coal</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Sawmill building (placed)</div><div class="task-note">Structure placed on island</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Furnace building (placed)</div><div class="task-note">Structure placed on island</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge done">Done</span></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backlog -->
+  <div class="sub">
+    <div class="sub-title">Backlog — planned work</div>
+    <div class="task-board">
+      <div class="task-board-header">
+        <div>Task</div>
+        <div>Role</div>
+        <div>Status</div>
+        <div>Area</div>
+      </div>
+      <div class="task-row"><td></td>
+        <div><div class="task-name">Farm plot building + hoe tool</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Resources</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Kitchen building + cooking system</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Resources</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Blacksmith building + tool upgrades</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span> <span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Resources</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Fishing rod + fishing system</div></div>
+        <div><span class="role-badge scripter">Scripter</span> <span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Resources</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Equipment station + tool equip system</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Tools</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Rank system + title display</div><div class="task-note">Drifter → Settler → Builder → Explorer → Voyager</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Progression</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Level unlock rewards design</div><div class="task-note">Decide what each level threshold gives</div></div>
+        <div><span class="role-badge all">All</span></div>
+        <div><span class="badge tbd">TBD</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Progression</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Mob HP &amp; damage values</div><div class="task-note">Skeleton stats to be defined</div></div>
+        <div><span class="role-badge all">All</span></div>
+        <div><span class="badge tbd">TBD</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Combat</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Skeleton AI + combat script</div><div class="task-note">Patrol, aggro, melee attack, drop bones/souls/XP</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Combat</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Player HP bar + armor system</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Combat</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Weapon models (sword tiers)</div></div>
+        <div><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Combat</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Mineshaft building + teleport</div><div class="task-note">Enter mineshaft → teleport to underground map</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Underground mine map</div><div class="task-note">Pre-built, non-expandable, gold ore + skeletons</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Dock building + island travel</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Jungle Island map</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Ice Island map</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Volcano Island map</div></div>
+        <div><span class="role-badge builder">Builder</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Portal building + dungeon entrance</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Dungeon floors 1–5</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Travel</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Coin currency system</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Economy</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Shard currency system</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Economy</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Merchant NPC + rotating inventory</div><div class="task-note">Visits twice daily, randomized stock</div></div>
+        <div><span class="role-badge scripter">Scripter</span> <span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Economy</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Trading post + player-to-player trade</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Economy</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Pet system + passive bonuses</div></div>
+        <div><span class="role-badge scripter">Scripter</span> <span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Social</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Promo code system</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Social</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Seasonal event framework</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Social</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Game pass system (XP boost, production, backpack)</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Monetization</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Season pass / battle pass system</div></div>
+        <div><span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Monetization</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">All building + resource 3D models</div><div class="task-note">Farm, kitchen, blacksmith, storage, dock, portal, + all mobs</div></div>
+        <div><span class="role-badge modeler">Modeler</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">Art</span></div>
+      </div>
+      <div class="task-row">
+        <div><div class="task-name">Complete HUD / UI design</div><div class="task-note">Backpack, XP bar, currency display, quest tracker</div></div>
+        <div><span class="role-badge builder">Builder</span> <span class="role-badge scripter">Scripter</span></div>
+        <div><span class="badge backlog">Backlog</span></div>
+        <div><span class="pill" style="font-size:10px;padding:1px 6px;">UI</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 02 LOOP -->
+<section class="section" id="loop">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-title">Core gameplay loop</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Main loop</div>
+    <div class="loop">
+      <span class="loop-step">Harvest resource nodes</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Feed into building</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Collect processed goods</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Walk to island edge</span><span class="loop-arrow">→</span>
+      <span class="loop-step">New block unlocks</span><span class="loop-arrow">↩</span>
+    </div>
+    <div class="callout green">Resources deposit automatically when the player walks near the island edge — no UI confirmation. The island physically grows. Each new block has a unique, hand-designed resource composition and quantity.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Production loop</div>
+    <div class="prose">No crafting menus exist anywhere in the game. Players carry resources to the building's input side; processed goods auto-collect by proximity on the output side.</div>
+    <div class="loop">
+      <span class="loop-step">Carry resource to building</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Drop on input side</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Building auto-processes</span><span class="loop-arrow">→</span>
+      <span class="loop-step">Walk near output to collect</span>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Session feel</div>
+    <div class="two-col">
+      <div class="card"><div class="card-title">Short session · 5–15 min</div><div class="card-body">Harvest nodes, process at a building, deposit at the edge, unlock 1–2 new blocks, complete a quest.</div></div>
+      <div class="card"><div class="card-title">Long session · 30–60 min</div><div class="card-body">Build a new structure, level up, unlock a larger island section, visit a travel location, trade with the merchant.</div></div>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 03 FTUE -->
+<section class="section" id="ftue">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <span class="section-title">First-time experience</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Onboarding flow</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Step</th><th>What happens</th><th>Teaching moment</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Player spawns on a single block with one tree</td><td>World starts intentionally tiny</td></tr>
+          <tr><td>2</td><td>UI arrow points to tree. Player walks over and breaks it</td><td>Resource harvesting</td></tr>
+          <tr><td>3</td><td>Arrow points to island edge. Player walks near it</td><td>Auto-deposit + island expansion</td></tr>
+          <tr><td>4</td><td>New block rises from water with a stone rock on it</td><td>Visual reward: deposit = island grows</td></tr>
+          <tr><td>5</td><td>Tutorial prompts player to mine the stone</td><td>Pickaxe tool introduction</td></tr>
+          <tr><td>6</td><td>More blocks expand, sawmill blueprint unlocks</td><td>Building system introduction</td></tr>
+          <tr><td>7</td><td>Tutorial ends. Full player agency begins</td><td>Player chooses direction to expand</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout blue">Tutorial uses UI arrows and short prompts only — no text walls. One action, one reward per step. The island visually growing from a single block is the core hook.</div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 04 RESOURCES -->
+<section class="section" id="resources">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-title">Resources &amp; crafting</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Resource table</div>
+    <div class="callout">Each island block has a unique, hand-designed resource composition — different types and quantities per block. No two blocks are the same.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Resource</th><th>Source</th><th>Tool</th><th>Output / use</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Wood</strong></td><td>Trees</td><td>Axe</td><td>Planks via sawmill</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Stone</strong></td><td>Stone nodes</td><td>Pickaxe</td><td>Building blocks, furnace input</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Coal</strong></td><td>Coal deposits</td><td>Pickaxe</td><td>Furnace fuel + smelting</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Planks</strong></td><td>Sawmill</td><td>—</td><td>Buildings, tool crafting</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Metal bars</strong></td><td>Furnace (ore + coal)</td><td>—</td><td>Tools, advanced buildings</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Crops</strong></td><td>Farm plots</td><td>Hoe</td><td>Food at kitchen</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Fish</strong></td><td>Water tiles / dock</td><td>Fishing rod</td><td>Food, trade goods</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Gold ore</strong></td><td>Mineshaft / islands</td><td>Upgraded pickaxe</td><td>Gold bars → advanced gear</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Bones</strong></td><td>Skeleton mob drop</td><td>—</td><td>Crafting use TBD</td><td><span class="badge tbd">TBD</span></td></tr>
+          <tr><td><strong>Souls</strong></td><td>Skeleton mob drop</td><td>—</td><td>Crafting / currency TBD</td><td><span class="badge tbd">TBD</span></td></tr>
+          <tr><td><strong>Rare ores</strong></td><td>Traveled locations</td><td>Advanced pickaxe</td><td>End-game gear &amp; buildings</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Shards</strong></td><td>Dungeons, bosses</td><td>—</td><td>Rare currency, premium crafting</td><td><span class="badge backlog">Backlog</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Tools</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tool</th><th>Used for</th><th>Upgrade path</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Axe</strong></td><td>Chopping trees / wood nodes</td><td>Basic → Stone → Iron → Gold → Rare</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Pickaxe</strong></td><td>Mining stone, coal, ores</td><td>Basic → Stone → Iron → Gold → Rare</td><td><span class="badge done">Done</span></td></tr>
+          <tr><td><strong>Hoe</strong></td><td>Tilling and harvesting crops</td><td>Basic → Iron → Gold</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Fishing rod</strong></td><td>Catching fish at water tiles</td><td>Basic → Reinforced → Master</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Sword / weapon</strong></td><td>Melee combat vs mobs</td><td>Wood → Iron → Gold → Rare</td><td><span class="badge backlog">Backlog</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Buildings</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Building</th><th>Input</th><th>Output</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Sawmill</strong></td><td>Raw wood</td><td>Planks</td><td><span class="badge in-progress">In progress</span></td></tr>
+          <tr><td><strong>Furnace</strong></td><td>Ore + coal</td><td>Metal / gold bars</td><td><span class="badge in-progress">In progress</span></td></tr>
+          <tr><td><strong>Farm plot</strong></td><td>Seeds + water</td><td>Crops</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Kitchen</strong></td><td>Crops + fish</td><td>Food (HP regen / XP boost)</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Blacksmith</strong></td><td>Metal bars + planks</td><td>Tool upgrades, weapons, armor</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Storage</strong></td><td>Any resource</td><td>Personal stored goods</td><td><span class="badge up-next">Up next</span></td></tr>
+          <tr><td><strong>Mineshaft</strong></td><td>Player enters</td><td>Teleports to underground mine</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Dock</strong></td><td>Player enters</td><td>Travel to other islands</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Portal</strong></td><td>Player enters</td><td>Travel to dungeons</td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Trading post</strong></td><td>Player lists items</td><td>Player-to-player trade</td><td><span class="badge backlog">Backlog</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 05 PROGRESSION -->
+<section class="section" id="progression">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <span class="section-title">Progression system</span>
+  </div>
+  <div class="callout amber">Map expansion is driven by resource deposits at the island edge — not by player level. Level is a separate progression layer. Specific level unlock rewards are still being designed.</div>
+  <div class="sub">
+    <div class="sub-title">Map expansion</div>
+    <div class="prose">Each island block has a resource cost — a specific set of materials the player must deposit at the edge. When the cost is met, the block rises from the water. Block costs are hand-designed and scaled to available resources at that map stage.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">XP sources</div>
+    <div class="pills">
+      <span class="pill green">Harvesting nodes</span><span class="pill green">Processing goods</span><span class="pill green">Unlocking blocks</span><span class="pill green">Completing quests</span><span class="pill green">Defeating mobs</span><span class="pill green">Cooking food</span><span class="pill green">Crafting / upgrading tools</span><span class="pill green">Fishing</span>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Level tiers</div>
+    <div class="tier-grid">
+      <div class="tier t1"><div class="tier-label">Tier 1</div><div class="tier-name">Settler</div><div class="tier-range">Lv 1–15</div><div class="tier-list">Basic axe &amp; pickaxe<br>Sawmill + furnace<br>Coin currency<br>Unlocks: TBD</div></div>
+      <div class="tier t2"><div class="tier-label">Tier 2</div><div class="tier-name">Builder</div><div class="tier-range">Lv 16–35</div><div class="tier-list">Hoe + fishing rod<br>Farm, kitchen, blacksmith<br>Mineshaft access<br>Unlocks: TBD</div></div>
+      <div class="tier t3"><div class="tier-label">Tier 3</div><div class="tier-name">Explorer</div><div class="tier-range">Lv 36–60</div><div class="tier-list">Advanced tools<br>Dock + island travel<br>Shard currency<br>Unlocks: TBD</div></div>
+      <div class="tier t4"><div class="tier-label">Tier 4</div><div class="tier-name">Voyager</div><div class="tier-range">Lv 61+</div><div class="tier-list">Portal + dungeons<br>Rare ores + gear<br>Boss encounters<br>Unlocks: TBD</div></div>
+    </div>
+    <div class="callout red">Level unlock rewards are still being designed. Candidates: access to travel locations, new tool tiers, rank titles, perks, cosmetics.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Ranks</div>
+    <div class="pills">
+      <span class="pill">Drifter (starter)</span><span class="pill blue">Settler (Lv 25)</span><span class="pill teal">Builder (Lv 50)</span><span class="pill amber">Explorer (Lv 75)</span><span class="pill coral">Voyager (Lv 100)</span>
+    </div>
+    <div class="prose">Ranks are earned through gameplay only — never sold. Perks TBD.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Quest types</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td>Harvest</td><td>"Collect 20 wood", "Mine 10 coal"</td></tr>
+          <tr><td>Production</td><td>"Process 15 planks", "Smelt 5 metal bars"</td></tr>
+          <tr><td>Expansion</td><td>"Unlock 3 new blocks", "Reach the farm zone"</td></tr>
+          <tr><td>Exploration</td><td>"Visit the mineshaft", "Travel to Jungle Island"</td></tr>
+          <tr><td>Combat</td><td>"Defeat 5 skeletons", "Survive a dungeon floor"</td></tr>
+          <tr><td>Crafting</td><td>"Upgrade your axe to iron", "Cook a meal"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 06 WORLD -->
+<section class="section" id="world">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <span class="section-title">World &amp; map design</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Starting island</div>
+    <div class="prose">Preset, hand-designed map of 35–40 expandable blocks. Every block has a unique resource composition. Players choose expansion direction freely; all paths complete the same final island.</div>
+    <div class="map-grid">
+      <div class="map-block z1"><div class="map-zone-label">Zone 1</div><div class="map-block-title">Origin</div><div class="map-block-body">First blocks. Trees, stone, coal. Sawmill + furnace. Core loop established.</div></div>
+      <div class="map-block z2"><div class="map-zone-label">Zone 2</div><div class="map-block-title">Farmlands</div><div class="map-block-body">Farm plots, kitchen, fishing tiles, blacksmith. Hoe + fishing rod unlock.</div></div>
+      <div class="map-block z3"><div class="map-zone-label">Zone 3</div><div class="map-block-title">Industrial</div><div class="map-block-body">Advanced buildings, storage, trading post, mineshaft entrance, dock.</div></div>
+      <div class="map-block z4"><div class="map-zone-label">Zone 4</div><div class="map-block-title">Gateway</div><div class="map-block-body">Portal, high-tier deposits, final island blocks, end-game prep.</div></div>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Shared world rules</div>
+    <div class="callout green">All players on the same server map can see each other. Inventory, progression, and resources are fully client-sided. One player's harvesting does not deplete nodes for others. Nodes respawn on a timer. There is no shared storage of any kind.</div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 07 TRAVEL -->
+<section class="section" id="travel">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <span class="section-title">Travel &amp; locations</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Travel methods</div>
+    <div class="cards">
+      <div class="card"><div class="card-title">Dock</div><div class="card-body">Zone 3. Sail to other islands — Jungle, Ice, Volcano, and more.</div></div>
+      <div class="card"><div class="card-title">Portal</div><div class="card-body">Zone 4. Instanced dungeons with floors, chests, mobs, and a boss.</div></div>
+      <div class="card"><div class="card-title">Mineshaft</div><div class="card-body">Zone 2–3. Teleports to underground mine with better ores and cave mobs.</div></div>
+    </div>
+    <div class="callout amber">Traveled locations are non-expandable, pre-built maps for resource gathering and combat only. Players return to the main island to use what they find.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Location table</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Location</th><th>Type</th><th>Key resources</th><th>Threats</th><th>Unlock</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Mineshaft</strong></td><td>Underground</td><td>Gold ore, rare coal</td><td>Skeletons, cave mobs</td><td><span class="badge up-next">Zone 2–3</span></td></tr>
+          <tr><td><strong>Jungle Island</strong></td><td>Island</td><td>Exotic wood, rare crops</td><td>Jungle mobs</td><td><span class="badge backlog">Zone 3+</span></td></tr>
+          <tr><td><strong>Ice Island</strong></td><td>Island</td><td>Crystal ore, ice fish</td><td>Ice mobs</td><td><span class="badge backlog">Zone 3+</span></td></tr>
+          <tr><td><strong>Volcano Island</strong></td><td>Island</td><td>Magma ore, fire gems</td><td>Fire mobs, lava</td><td><span class="badge backlog">Zone 4+</span></td></tr>
+          <tr><td><strong>Dungeon (floors 1–5)</strong></td><td>Dungeon</td><td>Shards, rare blueprints</td><td>Mobs + boss per floor</td><td><span class="badge backlog">Zone 4+</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 08 COMBAT -->
+<section class="section" id="combat">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <span class="section-title">Combat system</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Overview</div>
+    <div class="prose">Melee combat only. Occurs exclusively in traveled locations — the starting island is always peaceful. Players equip a weapon at the blacksmith before entering any combat zone. Dying respawns the player on the main island; backpack resources retained.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Mob roster</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Mob</th><th>Location</th><th>Drops</th><th>HP</th><th>Damage</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Skeleton</strong></td><td>Mineshaft, dungeons</td><td>Bones, Souls, XP</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge up-next">Up next</span></td></tr>
+          <tr><td><strong>Cave mob</strong></td><td>Mineshaft</td><td>TBD</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Jungle mob</strong></td><td>Jungle Island</td><td>TBD</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Ice mob</strong></td><td>Ice Island</td><td>TBD</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Fire mob</strong></td><td>Volcano Island</td><td>TBD</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge backlog">Backlog</span></td></tr>
+          <tr><td><strong>Dungeon boss</strong></td><td>Dungeons (per floor)</td><td>Rare blueprints, shards</td><td><span class="badge tbd">TBD</span></td><td><span class="badge tbd">TBD</span></td><td><span class="badge backlog">Backlog</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 09 SOCIAL -->
+<section class="section" id="social">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <span class="section-title">Social &amp; economy</span>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Currency</div>
+    <div class="two-col">
+      <div class="card"><div class="card-title">Coins — soft currency</div><div class="card-body">Earned through quests, selling to the merchant, defeating mobs. Used for purchases, upgrades, and building costs.</div></div>
+      <div class="card"><div class="card-title">Shards — rare currency</div><div class="card-body">Dropped by bosses and found in dungeons. Used for high-tier crafting and premium blueprints.</div></div>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Merchant</div>
+    <div class="prose">Traveling NPC. Visits twice per day at randomized times with a randomized inventory. Players buy rare items and blueprints, or sell surplus resources for coins. Primary resource sink in the economy.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Trading post</div>
+    <div class="prose">Unlocked in Zone 3. Players list resources for others to buy or swap. Creates a lightweight player-driven economy on the shared server.</div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Pets &amp; events</div>
+    <div class="prose">Pets follow the player and provide passive bonuses. Earned through milestones, events, and promo codes. Exclusive cosmetic skins may be Robux-purchasable. Seasonal events are free to all players regardless of level.</div>
+    <div class="pills"><span class="pill">Harvest festival</span><span class="pill blue">Winter expedition</span><span class="pill coral">Volcanic summer</span><span class="pill teal">More TBD</span></div>
+  </div>
+</section>
+
+<hr>
+
+<!-- 10 MONETIZATION -->
+<section class="section" id="monetization">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <span class="section-title">Monetization</span>
+  </div>
+  <div class="callout green">All gameplay content is free and earnable through play. Paid items are cosmetic, QoL, or time-saving — never pay-to-win. No ads. No paywalled progression.</div>
+  <div class="sub">
+    <div class="sub-title">Robux products</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Product</th><th>Type</th><th>Description</th><th>P2W?</th></tr></thead>
+        <tbody>
+          <tr><td><strong>XP Boost pass</strong></td><td>Game pass</td><td>Permanent +25% XP from all sources</td><td>Minor — time-saving</td></tr>
+          <tr><td><strong>Production boost</strong></td><td>Game pass</td><td>Buildings process resources faster</td><td>Minor — time-saving</td></tr>
+          <tr><td><strong>Large backpack</strong></td><td>Game pass</td><td>Larger starting backpack capacity</td><td>Minor — QoL only</td></tr>
+          <tr><td><strong>Exclusive tools</strong></td><td>Shop</td><td>Unique tool skins, no stat difference</td><td>No — cosmetic</td></tr>
+          <tr><td><strong>Cosmetic pets</strong></td><td>Shop / event</td><td>Exclusive pet skins or rare pets</td><td>No — cosmetic</td></tr>
+          <tr><td><strong>Character outfits</strong></td><td>Shop</td><td>Cosmetic clothing and tool skins</td><td>No — cosmetic</td></tr>
+          <tr><td><strong>Season pass</strong></td><td>Battle pass</td><td>Limited seasonal reward track for active players</td><td>No — bonus content</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="sub">
+    <div class="sub-title">Free engagement</div>
+    <div class="pills">
+      <span class="pill green">Promo codes</span><span class="pill green">Daily login rewards</span><span class="pill green">Seasonal events</span><span class="pill green">Quest milestones</span><span class="pill green">Rank cosmetics</span>
+    </div>
+  </div>
+  <div class="callout amber">Avoid Dreamdale's mistake: never gate progression behind a paywall or use intrusive pop-ups. Spending should always feel like a bonus, never a necessity.</div>
+</section>
+
+</main>
+</div>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+const sections = document.querySelectorAll('.section');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(n => {
+        n.classList.remove('active');
+        if (n.getAttribute('href') === '#' + id) n.classList.add('active');
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
